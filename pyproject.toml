@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "warrant"
+version = "0.1.0"
+description = "Checks a scientific claim against the literature, and measures whether it retrieved the right papers"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Dwarakesh Baraneetharan" }]
+
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.34",
+  "pydantic>=2.9",
+  "numpy>=2.0",
+  "httpx>=0.28",
+  # Pinned to the small CPU models; the whole point is that this runs on free tiers.
+  "sentence-transformers>=3.3",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "ruff>=0.8", "httpx>=0.28"]
+
+[project.scripts]
+warrant = "warrant.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/warrant"]
+
+[tool.ruff]
+line-length = 96
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

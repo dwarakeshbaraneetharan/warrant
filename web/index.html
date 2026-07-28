@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Warrant — check a scientific claim against the literature</title>
+    <meta
+      name="description"
+      content="Retrieves evidence for a scientific claim from 5,183 abstracts and answers with sentence-level citations. Retrieval quality measured against human relevance judgments."
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Warrant</h1>
+      <p class="lede">
+        Checks a scientific claim against 5,183 research abstracts and answers with
+        citations down to the sentence. Every claim in the answer must name the
+        sentence that supports it, or the answer is rejected.
+      </p>
+      <p class="status" id="status" role="status">Loading index…</p>
+    </header>
+
+    <main>
+      <form id="form" autocomplete="off">
+        <label for="claim">Scientific claim</label>
+        <textarea
+          id="claim"
+          name="claim"
+          rows="2"
+          maxlength="500"
+          placeholder="e.g. Vitamin D supplementation reduces the risk of respiratory infection."
+          required
+        ></textarea>
+
+        <div class="controls">
+          <label class="check">
+            <input type="checkbox" id="reranker" checked />
+            <span>
+              Domain reranker
+              <small>+0.095 nDCG@10, ~0.7s slower — uncheck to compare</small>
+            </span>
+          </label>
+          <button type="submit" id="submit">Check claim</button>
+        </div>
+      </form>
+
+      <section id="examples" class="examples" hidden>
+        <h2>Try one with a known answer</h2>
+        <div id="exampleButtons"></div>
+      </section>
+
+      <section id="result" hidden>
+        <div class="verdict" id="verdict"></div>
+        <p class="reasoning" id="reasoning"></p>
+        <p class="warning" id="warning" hidden></p>
+        <p class="timing" id="timing"></p>
+
+        <h2>Evidence</h2>
+        <p class="hint">Cited sentences are highlighted.</p>
+        <ol id="sources" class="sources"></ol>
+      </section>
+
+      <section id="error" class="error" hidden></section>
+    </main>
+
+    <footer>
+      <p>
+        Corpus and human relevance judgments from
+        <a href="https://github.com/allenai/scifact">SciFact</a>. Retrieval is
+        hybrid BM25 + dense embeddings fused by reciprocal rank, then reranked by a
+        cross-encoder trained on PubMed search logs.
+        <a href="https://github.com/dwarakeshbaraneetharan/warrant"
+          >Source and measurements</a
+        >.
+      </p>
+      <p class="disclaimer">
+        A demonstration of retrieval evaluation, not medical advice.
+      </p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
