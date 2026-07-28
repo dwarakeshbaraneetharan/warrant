@@ -46,7 +46,7 @@ jobs:
       - run: pip install -e '.[dev]'
 
       - name: Cache embedding model
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/huggingface
           key: hf-minilm-${{ runner.os }}
@@ -75,7 +75,7 @@ jobs:
             --min-recall 0.90 \
             --json retrieval-scores.json
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: retrieval-scores
           path: retrieval-scores.json
