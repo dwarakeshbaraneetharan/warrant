@@ -14,8 +14,7 @@ is rejected rather than shown.
 In Toulmin's model of argument, the *warrant* is what connects evidence to a claim.
 That is the thing this produces.
 
-> **Live demo:** _deploying — see [Running it](#running-it) to run locally in two
-> commands._
+> **Live demo:** [warrant-197958039317.us-central1.run.app](https://warrant-197958039317.us-central1.run.app)
 
 ---
 

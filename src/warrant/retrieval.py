@@ -18,6 +18,7 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
@@ -136,8 +137,20 @@ class DenseIndex:
             self._model = SentenceTransformer(self.model_name)
         return self._model
 
-    def index(self, doc_ids: list[str], texts: list[str], batch_size: int = 64) -> DenseIndex:
+    def index(
+        self,
+        doc_ids: list[str],
+        texts: list[str],
+        batch_size: int = 64,
+        cache_path: str | Path | None = None,
+    ) -> DenseIndex:
         self.doc_ids = list(doc_ids)
+        if cache_path:
+            p = Path(cache_path)
+            if p.exists():
+                self.vectors = np.load(p)
+                return self
+
         vectors = self.model.encode(
             texts,
             batch_size=batch_size,
@@ -146,6 +159,10 @@ class DenseIndex:
             show_progress_bar=False,
         )
         self.vectors = np.asarray(vectors, dtype=np.float32)
+        if cache_path:
+            p = Path(cache_path)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            np.save(p, self.vectors)
         return self
 
     def search(self, query: str, top_k: int = 50) -> list[Hit]:
@@ -265,12 +282,13 @@ class Retriever:
         self.reranker = CrossEncoderReranker(self.config.rerank_model)
         self.texts: dict[str, str] = {}
 
-    def index(self, doc_ids: list[str], texts: list[str]) -> Retriever:
+    def index(self, doc_ids: list[str], texts: list[str], cache_dir: str | Path | None = None) -> Retriever:
         self.texts = dict(zip(doc_ids, texts, strict=True))
         if self.config.use_bm25:
             self.bm25.index(doc_ids, texts)
         if self.config.use_dense:
-            self.dense.index(doc_ids, texts)
+            c_path = Path(cache_dir) / "dense_embeddings.npy" if cache_dir else None
+            self.dense.index(doc_ids, texts, cache_path=c_path)
         return self
 
     def use(self, config: RetrieverConfig) -> Retriever:

@@ -29,7 +29,16 @@ from .corpus import Dataset, Verdict, load_dataset
 from .retrieval import Retriever, RetrieverConfig
 from .verdict import Answer, LlmClient, verify
 
-WEB_ROOT = Path(__file__).resolve().parents[2] / "web"
+def get_web_root() -> Path:
+    env_root = os.environ.get("WARRANT_WEB")
+    if env_root and Path(env_root).exists():
+        return Path(env_root)
+    if Path("/app/web").exists():
+        return Path("/app/web")
+    return Path(__file__).resolve().parents[2] / "web"
+
+
+WEB_ROOT = get_web_root()
 
 
 class VerifyRequest(BaseModel):
@@ -93,7 +102,7 @@ def build_state(data_dir: str) -> None:
     # halves that. The ablation shows Recall@50 is already 0.940 before reranking,
     # so the abstracts that matter are almost always inside the first 25.
     retriever = Retriever(RetrieverConfig(candidates=25))
-    retriever.index(doc_ids, texts)
+    retriever.index(doc_ids, texts, cache_dir=data_dir)
 
     state.dataset = dataset
     state.retriever = retriever
@@ -126,15 +135,25 @@ def _sources(hits, dataset: Dataset, answer: Answer | None = None) -> list[Sourc
     return out
 
 
+_background_tasks = set()
+
+
 def create_app(data_dir: str | None = None) -> FastAPI:
     data_dir = data_dir or os.environ.get("WARRANT_DATA", "data/scifact")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        try:
-            build_state(data_dir)
-        except Exception as exc:
-            state.error = str(exc)
+        import asyncio
+
+        def _worker():
+            try:
+                build_state(data_dir)
+            except Exception as exc:
+                state.error = str(exc)
+
+        task = asyncio.create_task(asyncio.to_thread(_worker))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
         yield
 
     app = FastAPI(

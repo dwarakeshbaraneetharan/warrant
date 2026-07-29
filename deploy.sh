@@ -47,6 +47,9 @@ gcloud run deploy warrant \
   --allow-unauthenticated \
   --memory 2Gi \
   --cpu 1 \
+  --cpu-boost \
+  --no-cpu-throttling \
+  --timeout 300s \
   --set-env-vars "GROQ_API_KEY=${GROQ_API_KEY}" \
   --quiet
 

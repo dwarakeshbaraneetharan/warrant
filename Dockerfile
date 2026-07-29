@@ -7,16 +7,20 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     HF_HOME=/app/.cache/huggingface \
     SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence-transformers \
-    WARRANT_DATA=/app/data/scifact
+    WARRANT_DATA=/app/data/scifact \
+    WARRANT_WEB=/app/web
 
 WORKDIR /app
 
-# Dependencies first, so a change to application code does not reinstall torch.
+# Dependencies first, CPU-only PyTorch to keep image under 500MB and build fast.
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install --no-cache-dir . && mkdir -p /app/.cache && chmod -R 777 /app/.cache
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+ && pip install --no-cache-dir . \
+ && mkdir -p /app/.cache && chmod -R 777 /app/.cache
 
 COPY web ./web
+COPY data ./data
 
 # Corpus and model weights are baked in at build time. Downloading them on first
 # request would make a cold start look like a hang, and the corpus is only 3 MB.
@@ -25,6 +29,9 @@ RUN python -m warrant.cli fetch --out /app/data \
 from sentence_transformers import SentenceTransformer, CrossEncoder; \
 SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); \
 CrossEncoder('ncbi/MedCPT-Cross-Encoder')" \
+ && python -c "\
+from warrant.api import build_state; \
+build_state('/app/data/scifact')" \
  && chmod -R 777 /app/.cache /app/data
 
 EXPOSE 7860
