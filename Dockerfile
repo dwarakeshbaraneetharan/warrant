@@ -31,4 +31,4 @@ EXPOSE 7860
 
 # One worker on purpose: the index lives in process memory, so a second worker
 # would double a 400 MB footprint to serve the same read-only data.
-CMD ["uvicorn", "warrant.api:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]
+CMD ["sh", "-c", "uvicorn warrant.api:app --host 0.0.0.0 --port ${PORT:-7860} --workers 1"]
