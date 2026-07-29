@@ -282,7 +282,9 @@ class Retriever:
         self.reranker = CrossEncoderReranker(self.config.rerank_model)
         self.texts: dict[str, str] = {}
 
-    def index(self, doc_ids: list[str], texts: list[str], cache_dir: str | Path | None = None) -> Retriever:
+    def index(
+        self, doc_ids: list[str], texts: list[str], cache_dir: str | Path | None = None
+    ) -> Retriever:
         self.texts = dict(zip(doc_ids, texts, strict=True))
         if self.config.use_bm25:
             self.bm25.index(doc_ids, texts)

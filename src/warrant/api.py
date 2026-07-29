@@ -29,6 +29,7 @@ from .corpus import Dataset, Verdict, load_dataset
 from .retrieval import Retriever, RetrieverConfig
 from .verdict import Answer, LlmClient, verify
 
+
 def get_web_root() -> Path:
     env_root = os.environ.get("WARRANT_WEB")
     if env_root and Path(env_root).exists():
